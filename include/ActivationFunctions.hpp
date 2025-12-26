@@ -13,6 +13,7 @@ class ActivationFunctions {
 public:
 	ActivationFunctions(ActivationFunction function);
 	double execute(double value);
+	std::string getRepr();
 
 private:
 	ActivationFunction _function;
@@ -21,6 +22,5 @@ private:
 	static double Sigmoid(double value);
 	static double Linear(double value);
 };
-
 
 #endif //NEURALNETWORKLIB_ACTIVATIONFUNCTIONS_HPP

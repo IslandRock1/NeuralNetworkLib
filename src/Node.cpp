@@ -1,11 +1,12 @@
 
 #include <random>
+#include <stdexcept>
+#include <iostream>
 
 #include "Node.hpp"
 
-#include <stdexcept>
 
-Node::Node(int numWeights, bool zeroBias) : _function(ReLU) {
+Node::Node(int numWeights, bool zeroBias) : function(ReLU) {
 	// Random weights, bias, and function.
 
 	std::random_device r;
@@ -14,30 +15,34 @@ Node::Node(int numWeights, bool zeroBias) : _function(ReLU) {
 	std::uniform_int_distribution<int> uniform_int(1, 4);
 
 	if (zeroBias) {
-		_bias = 0.0;
+		bias = 0.0;
 	} else {
-		_bias = uniform_dist(e1);
+		bias = uniform_dist(e1);
 	}
 
 	for (int i = 0; i < numWeights; i++) {
-		_weights.emplace_back(uniform_dist(e1));
+		weights.emplace_back(uniform_dist(e1));
 	}
 
-	switch (uniform_int(e1)) {
+	setFunction(uniform_int(e1));
+}
+
+void Node::setFunction(int funcIx) {
+	switch (funcIx) {
 	case 1:
-		_function = ActivationFunction::TanH;
+		function = ActivationFunction::TanH;
 		break;
 
 	case 2:
-		_function = ActivationFunction::ReLU;
+		function = ActivationFunction::ReLU;
 		break;
 
 	case 3:
-		_function = ActivationFunction::Sigmoid;
+		function = ActivationFunction::Sigmoid;
 		break;
 
 	case 4:
-		_function = ActivationFunction::Linear;
+		function = ActivationFunction::Linear;
 		break;
 
 	default:
@@ -45,11 +50,17 @@ Node::Node(int numWeights, bool zeroBias) : _function(ReLU) {
 	}
 }
 
+
 double Node::getActivationValue(const double value) {
-	return _function.execute(_bias + value);
+	return function.execute(bias + value);
 }
 
-std::vector<double> Node::getWeights() {
-	return _weights;
+void Node::printNode() {
+	std::cout << "Bias: " << bias << " | Function: " << function.getRepr() << "\n";
+	std::cout << "Weights:";
+	for (auto &w : weights) {
+		std::cout << " " << w;
+	}
+	std::cout << "\n";
 }
 

@@ -8,6 +8,7 @@ set(SHARED_SOURCES
         src/Node.cpp
         src/Layer.cpp
         src/NeuralNetwork.cpp
+        src/TrainingLib.cpp
 )
 
 add_library(NeuralNetworkLib STATIC ${SHARED_SOURCES})

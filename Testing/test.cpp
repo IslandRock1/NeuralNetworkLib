@@ -2,17 +2,21 @@
 #include <iostream>
 
 #include "NeuralNetwork.hpp"
+#include "ModificationOptions.hpp"
 
 int main() {
 
-	NeuralNetwork nn{{2, 100, 1000, 100, 1}};
+	NeuralNetwork nn{{2, 1}};
 
-	std::vector<double> sensorValues = {0.0, 0.0};
-	nn.compute(sensorValues);
+	nn.printNetwork();
 
-	std::cout << "Values: ";
-	for (auto &v : sensorValues) {
-		std::cout << " " << v;
+	for (int i = 0; i < 100; i++) {
+		ModificationOptions modification_options{1.0};
+		nn.executeRandomChange(modification_options);
 	}
-	std::cout << "\n";
+	ModificationOptions modification_options{1.0};
+	nn.executeRandomChange(modification_options);
+
+	std::cout << "##########################\n";
+	nn.printNetwork();
 }

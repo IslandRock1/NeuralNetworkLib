@@ -9,14 +9,14 @@
 class Node {
 public:
 	Node(int numWeights, bool zeroBias);
+	void setFunction(int funcIx);
 	double getActivationValue(double value);
 
-	std::vector<double> getWeights();
-private:
+	void printNode();
 
-	double _bias;
-	std::vector<double> _weights;
-	ActivationFunctions _function;
+	double bias;
+	std::vector<double> weights;
+	ActivationFunctions function;
 };
 
 

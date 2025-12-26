@@ -11,8 +11,9 @@ public:
 	Layer(int numNodes, int numInputs, bool zeroBias);
 	std::vector<double> computeLayer(const std::vector<double>& inputValues);
 
-private:
-	std::vector<Node> _nodes;
+	void printLayer();
+
+	std::vector<Node> nodes;
 };
 
 

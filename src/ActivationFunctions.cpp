@@ -1,5 +1,6 @@
 
 #include <cmath>
+#include <iostream>
 #include "ActivationFunctions.hpp"
 
 ActivationFunctions::ActivationFunctions(const ActivationFunction function): _function(function) {}
@@ -41,5 +42,25 @@ double ActivationFunctions::Sigmoid(const double value) {
 
 double ActivationFunctions::Linear(const double value) {
 	return value;
+}
+
+std::string ActivationFunctions::getRepr() {
+	switch (_function) {
+	case ActivationFunction::TanH: {
+		return "TanH";
+	}
+
+	case ActivationFunction::ReLU: {
+		return "ReLU";
+	}
+
+	case ActivationFunction::Sigmoid: {
+		return "Sigmoid";
+	}
+
+	case ActivationFunction::Linear: {
+		return "Linear";
+	}
+	}
 }
 
