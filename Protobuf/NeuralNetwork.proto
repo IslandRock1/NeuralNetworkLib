@@ -1,0 +1,18 @@
+
+syntax = "proto2";
+package proto;
+
+message Node {
+    required double bias = 1;
+    repeated double weights = 2;
+    required int32 function = 3;
+}
+
+message Layer {
+    repeated Node nodes = 1;
+}
+
+message NeuralNetwork {
+    required int32 numNodes = 1;
+    repeated Layer layers = 2;
+}

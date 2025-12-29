@@ -9,8 +9,10 @@
 class Node {
 public:
 	Node(int numWeights, bool zeroBias);
-	void setFunction(int funcIx);
 	double getActivationValue(double value);
+
+	void setFunction(int funcIx);
+	int getFunction();
 
 	void printNode();
 

@@ -5,11 +5,13 @@
 #include <string>
 #include <vector>
 
-struct PythonToCPPInit {
+struct PythonToCPP {
 	std::string projectName;
 
 	std::vector<int> hiddenLayerSize; // In and out is decided by sim
 	int networksPerIter;
+	int numSimulations;
+	double simTime;
 
 	double percentNetworksKept;
 	double percentNetworksNew;
@@ -18,9 +20,7 @@ struct PythonToCPPInit {
 	double percentChangeFunction;
 	double percentChangeBias;
 	double percentChangeWeight;
-};
 
-struct PythonToCPPIter {
 	int numChanges;
 	double temperature;
 	std::vector<double> constValues;
@@ -30,8 +30,10 @@ struct CPPToPython {
 	std::vector<double> bestScores;
 	std::vector<double> avgScores;
 
-	double finishedNetworksThisIter;
+	int finishedIterations;
+	int finishedNetworksThisIter;
 
+	double timePerMutate;
 	double timePerNetwork;
 	double timePerIter;
 	double timeComputationNetwork;

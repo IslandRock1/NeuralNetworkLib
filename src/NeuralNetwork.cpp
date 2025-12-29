@@ -17,7 +17,44 @@ NeuralNetwork::NeuralNetwork(const std::vector<int> &layerSizes) {
 	}
 }
 
-std::vector<double> NeuralNetwork::compute(std::vector<double> &inputValues) {
+NeuralNetwork::NeuralNetwork(const std::string& path) {
+	proto::NeuralNetwork network;
+
+	std::ifstream myFile(path, std::ios::binary);
+	if (!myFile) {
+		throw std::runtime_error("Could not find file.");
+	}
+
+	if (!network.ParseFromIstream(&myFile)) {
+		throw std::runtime_error("Could not parse file.");
+	}
+
+	_numNodes = network.numnodes();
+	_layers.clear();
+	_layers.reserve(network.layers_size());
+
+	for (const auto& l : network.layers()) {
+		Layer layer{0, 0, true};
+		layer.nodes.reserve(l.nodes_size());
+
+		for (const auto& n : l.nodes()) {
+			Node node{0, true};
+			node.bias = n.bias();
+			node.setFunction(n.function());
+
+			node.weights.reserve(n.weights_size());
+			for (const auto& w : n.weights()) {
+				node.weights.push_back(w);
+			}
+
+			layer.nodes.push_back(std::move(node));
+		}
+
+		_layers.push_back(std::move(layer));
+	}
+}
+
+std::vector<double> NeuralNetwork::compute(std::vector<double> inputValues) {
 
 	for (int i = 1; i < _layers.size(); i++) {
 		inputValues = _layers[i].computeLayer(inputValues);
@@ -71,35 +108,56 @@ void NeuralNetwork::printNetwork() {
 }
 
 void NeuralNetwork::save(const std::string& pathS) {
-	std::vector<int> sizes;
+	proto::NeuralNetwork network;
+	network.set_numnodes(_numNodes);
+
 	for (auto &l : _layers) {
-		sizes.push_back(l.nodes.size());
-	}
-
-	std::ofstream myFile;
-	myFile.open(pathS);
-
-	for (int i = 0; i < sizes.size() - 1; i++) {
-		myFile << std::to_string(sizes[i]);
-		myFile << ":";
-	}
-	myFile << std::to_string(sizes[sizes.size() - 1]);
-	myFile << "\n";
-
-	for (int ixL = 0; ixL < _layers.size(); ixL++) {
-		for (int ixN = 0; ixN < _layers[ixL].nodes.size(); ixN++) {
-			auto n = _layers[ixL].nodes[ixN];
-			myFile << ixL << ":" << ixN << ":" << n.function.getRepr() << ":" << n.bias;
-
-			for (auto &w : n.weights) {
-				myFile << ":" << w;
+		auto* layer = network.add_layers();
+		for (auto &n : l.nodes) {
+			auto* node = layer->add_nodes();
+			node->set_bias(n.bias);
+			node->set_function(n.getFunction());
+			for (const auto &w : n.weights) {
+				node->add_weights(w);
 			}
-			myFile << "\n";
 		}
 	}
 
-	myFile.close();
+	std::ofstream myFile(pathS, std::ios::binary);
+	network.SerializeToOstream(&myFile);
 }
+
+
+// void NeuralNetwork::saveOld(const std::string& pathS) {
+// 	std::vector<int> sizes;
+// 	for (auto &l : _layers) {
+// 		sizes.push_back(l.nodes.size());
+// 	}
+//
+// 	std::ofstream myFile;
+// 	myFile.open(pathS);
+//
+// 	for (int i = 0; i < sizes.size() - 1; i++) {
+// 		myFile << std::to_string(sizes[i]);
+// 		myFile << ":";
+// 	}
+// 	myFile << std::to_string(sizes[sizes.size() - 1]);
+// 	myFile << "\n";
+//
+// 	for (int ixL = 0; ixL < _layers.size(); ixL++) {
+// 		for (int ixN = 0; ixN < _layers[ixL].nodes.size(); ixN++) {
+// 			auto n = _layers[ixL].nodes[ixN];
+// 			myFile << ixL << ":" << ixN << ":" << n.function.getRepr() << ":" << n.bias;
+//
+// 			for (auto &w : n.weights) {
+// 				myFile << ":" << w;
+// 			}
+// 			myFile << "\n";
+// 		}
+// 	}
+//
+// 	myFile.close();
+// }
 
 NeuralNetwork NeuralNetwork::copy() const {
 	std::vector<int> sizes;

@@ -27,6 +27,10 @@ Node::Node(int numWeights, bool zeroBias) : function(ReLU) {
 	setFunction(uniform_int(e1));
 }
 
+double Node::getActivationValue(const double value) {
+	return function.execute(bias + value);
+}
+
 void Node::setFunction(int funcIx) {
 	switch (funcIx) {
 	case 1:
@@ -50,10 +54,15 @@ void Node::setFunction(int funcIx) {
 	}
 }
 
+int Node::getFunction() {
+	if (function.getRepr() == "TanH") {return 1;}
+	if (function.getRepr() == "ReLU") {return 2;}
+	if (function.getRepr() == "Sigmoid") {return 3;}
+	if (function.getRepr() == "Linear") {return 4;}
 
-double Node::getActivationValue(const double value) {
-	return function.execute(bias + value);
+	return -1;
 }
+
 
 void Node::printNode() {
 	std::cout << "Bias: " << bias << " | Function: " << function.getRepr() << "\n";
