@@ -1,14 +1,13 @@
 
 #include <iostream>
-#include <cmath>
 
-#include "Tester.hpp"
+#include "PendulumTester.hpp"
 
-Tester::Tester() = default;
+Pendulum::PendulumTester::PendulumTester() = default;
 
-Tester::Tester(const PendulumInfo& pendulum): _simulation(pendulum) {}
+Pendulum::PendulumTester::PendulumTester(const PendulumInfo& pendulum): _simulation(pendulum) {}
 
-std::vector<double> Tester::getInfo() const {
+std::vector<double> Pendulum::PendulumTester::getInfo() {
 	// pendulumX, pendulumY, rotationVel, cartPos, cartVel
 
 	auto [anglePos, angleVel, cartPos, cartVel] = _simulation.getInfo();
@@ -17,20 +16,20 @@ std::vector<double> Tester::getInfo() const {
 	return {pendulumX, pendulumY, angleVel, cartPos, cartVel};
 }
 
-SimulationInfo Tester::update(const double externalForce, const std::vector<double>& constValues) {
-	const auto force = std::max(-_maxForce, std::min(_maxForce, externalForce));
+SimulationInfo Pendulum::PendulumTester::update(std::vector<double>& network, std::vector<double>& rewardModifiers) {
+	const auto force = std::max(-_maxForce, std::min(_maxForce, network[0]));
 
 	_sumTime += _dt;
 	_simulation.update(_dt, force * 10.0);
 
 	const bool isFinished = _sumTime >= _maxTime;
 	const double progress = _sumTime / _maxTime;
-	_sumReward += rewardFunction(constValues);
+	_sumReward += rewardFunction(rewardModifiers);
 
 	return {isFinished, progress, _sumReward};
 }
 
-double Tester::rewardFunction(const std::vector<double>& constValues) {
+double Pendulum::PendulumTester::rewardFunction(const std::vector<double>& constValues) {
 	auto [anglePos, angleVel, cartPos, cartVel] = _simulation.getInfo();
 	const double error = abs(anglePos);
 
@@ -46,7 +45,7 @@ double Tester::rewardFunction(const std::vector<double>& constValues) {
 	if (constValues.size() >= 4) {
 		return constValues[0] * _runningCount - constValues[1] * angleVelTerm - constValues[2] * cartPosTerm - constValues[3] * cartVelTerm;
 	}
-	return _runningCount; // - angleVelTerm - cartPosTerm - cartVelTerm;
+	return _runningCount;
 }
 
 

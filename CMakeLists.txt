@@ -3,7 +3,7 @@ project(NeuralNetworkLib)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_subdirectory(Projects/PendulumSimulation)
+add_subdirectory(Projects/Pendulum)
 add_subdirectory(Protobuf)
 
 include(FetchContent)

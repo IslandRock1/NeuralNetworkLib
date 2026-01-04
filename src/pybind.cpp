@@ -6,7 +6,7 @@
 #include "NeuralNetwork.hpp"
 #include "PendulumSimulation.hpp"
 #include "TrainingLib.hpp"
-#include "Tester.hpp"
+#include "PendulumTester.hpp"
 
 namespace py = pybind11;
 
@@ -87,11 +87,11 @@ PYBIND11_MODULE(NeuralNetworkPython, m) {
 		.def_readwrite("reward", &SimulationInfo::reward)
 	;
 
-	py::class_<Tester>(m, "Tester")
+	py::class_<Pendulum::PendulumTester>(m, "PendulumTester")
 		.def(py::init<>())
 		.def(py::init<PendulumInfo>(), py::arg("PendulumInfo"))
 
-		.def("getInfo", &Tester::getInfo)
-		.def("update", &Tester::update)
+		.def("getInfo", &Pendulum::PendulumTester::getInfo)
+		.def("update", &Pendulum::PendulumTester::update)
 	;
 }

@@ -6,20 +6,31 @@
 #include <filesystem>
 
 #include "TrainingLib.hpp"
-#include "Tester.hpp"
+#include "PendulumTester.hpp"
 
 TrainingLib::TrainingLib(PythonToCPP settings)
-	: _settings(std::move(settings)), _threadScores(settings.networksPerIter) {
-
-	std::cout << "Num threads: " << numThreads << "\n";
+	: _settings(std::move(settings)), _threadScores(_settings.networksPerIter) {
 
 	_outputStats = CPPToPython{{}, {}, 0, 0, 0.0, 0.0, 0.0, 0.0};
 
-	_layerSizes = {Tester::numInputNodes};
+	if (_settings.projectName == "Pendulum") {
+		testerFactory = [] {
+			return std::make_unique<Pendulum::PendulumTester>();
+		};
+	} else {
+		stop();
+		throw std::runtime_error("Invalid project name.");
+	}
+
+	auto tmpTester = testerFactory();
+	int input = tmpTester->numInputNodes();
+	int output = tmpTester->numOutputNodes();
+
+	_layerSizes = {input};
 	for (auto &lSize : _settings.hiddenLayerSize) {
 		_layerSizes.emplace_back(lSize);
 	}
-	_layerSizes.emplace_back(Tester::numOutputNodes);
+	_layerSizes.emplace_back(output);
 
 	while (_networks.size() < _settings.networksPerIter) {
 		NeuralNetwork nn{_layerSizes};
@@ -29,7 +40,6 @@ TrainingLib::TrainingLib(PythonToCPP settings)
 	_computeOrganizingThread = std::jthread{&TrainingLib::_run, this};
 
 	auto path = std::filesystem::current_path();
-	std::cout << "Current path: " << path << "\n";
 	std::filesystem::create_directory("models");
 }
 
@@ -218,18 +228,18 @@ void TrainingLib::_threadTask() {
 }
 
 double TrainingLib::_testSimulation(NeuralNetwork& network) {
-	Tester tester{};
+	auto tester = testerFactory();
 
 	std::chrono::duration<double> computeTime{};
 	std::chrono::duration<double> simTime{};
 
 	while (true) {
-		auto networkInfo = tester.getInfo();
+		auto networkInfo = tester->getInfo();
 
 		auto t0 = std::chrono::high_resolution_clock::now();
 		auto output = network.compute(networkInfo);
 		auto t1 = std::chrono::high_resolution_clock::now();
-		auto simInfo = tester.update(output[0], _settings.constValues);
+		auto simInfo = tester->update(output, _settings.constValues);
 		auto t2 = std::chrono::high_resolution_clock::now();
 		if (_stopFlag) {return 0.0;}
 

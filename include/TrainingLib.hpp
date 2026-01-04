@@ -7,6 +7,8 @@
 #include <vector>
 #include <atomic>
 
+#include "BaseTester.hpp"
+
 #include "NeuralNetwork.hpp"
 #include "ComunicationStruct.hpp"
 
@@ -27,6 +29,9 @@ private:
 	double _testSimulation(NeuralNetwork &network);
 
 	void mutationTask();
+
+	using TesterFactory = std::function<std::unique_ptr<PendulumTester>()>;
+	TesterFactory testerFactory;
 
 	PythonToCPP _settings;
 	CPPToPython _outputStats;
