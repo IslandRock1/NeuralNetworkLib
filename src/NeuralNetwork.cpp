@@ -6,6 +6,8 @@
 
 #include "NeuralNetwork.hpp"
 
+NeuralNetwork::NeuralNetwork(): _numNodes(0) {}
+
 NeuralNetwork::NeuralNetwork(const std::vector<int> &layerSizes) {
 
 	_numNodes = layerSizes[0];

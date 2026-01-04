@@ -26,6 +26,7 @@ private:
 	int _simulationSteps = 1;
 	double _pi = 3.1415926;
 	double _g = 9.81;
+	double _maxForce = 10.0;
 
 	double _anglePos;
 	double _angleVel;

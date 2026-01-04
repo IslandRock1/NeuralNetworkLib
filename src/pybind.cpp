@@ -5,6 +5,8 @@
 #include "ComunicationStruct.hpp"
 #include "NeuralNetwork.hpp"
 #include "PendulumSimulation.hpp"
+#include "TrainingLib.hpp"
+#include "Tester.hpp"
 
 namespace py = pybind11;
 
@@ -68,5 +70,28 @@ PYBIND11_MODULE(NeuralNetworkPython, m) {
 		.def(py::init<PendulumInfo>(), py::arg("PendulumInfo"))
 		.def("getInfo", &PendulumSimulation::getInfo)
 		.def("update", &PendulumSimulation::update)
+	;
+
+	py::class_<TrainingLib>(m, "TrainingLib")
+		.def(py::init<PythonToCPP>(), py::arg("PythonToCPP"))
+		.def("stop", &TrainingLib::stop)
+		.def("setInfo", &TrainingLib::setInfo)
+		.def("getInfo", &TrainingLib::getInfo)
+	;
+
+	py::class_<SimulationInfo>(m, "SimulationInfo")
+		.def(py::init<>())
+
+		.def_readwrite("isFinished", &SimulationInfo::isFinished)
+		.def_readwrite("progress", &SimulationInfo::progress)
+		.def_readwrite("reward", &SimulationInfo::reward)
+	;
+
+	py::class_<Tester>(m, "Tester")
+		.def(py::init<>())
+		.def(py::init<PendulumInfo>(), py::arg("PendulumInfo"))
+
+		.def("getInfo", &Tester::getInfo)
+		.def("update", &Tester::update)
 	;
 }

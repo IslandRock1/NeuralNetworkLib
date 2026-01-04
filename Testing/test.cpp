@@ -8,89 +8,7 @@
 #include "ComunicationStruct.hpp"
 #include "TrainingLib.hpp"
 
-void printCPPToPythonOld(const CPPToPython& data) {
-	// This function is created by ChatGPT
-	std::cout << "=== CPPToPython ===\n";
 
-	std::cout << "Finished iterations: "
-			  << data.finishedIterations << "\n";
-
-	std::cout << "Finished networks this iter: "
-			  << data.finishedNetworksThisIter << "\n";
-
-	std::cout << "Timing:\n";
-	std::cout << "  timePerNetwork            : " << data.timePerNetwork << "\n";
-	std::cout << "  timePerIter               : " << data.timePerIter << "\n";
-	std::cout << "  timeComputationNetwork    : " << data.timeComputationNetwork << "\n";
-	std::cout << "  timeComputationSimulation : " << data.timeComputetionSimulation << "\n";
-
-	std::cout << "Best scores (" << data.bestScores.size() << "): ";
-	for (double v : data.bestScores)
-		std::cout << v << " ";
-	std::cout << "\n";
-
-	std::cout << "Average scores (" << data.avgScores.size() << "): ";
-	for (double v : data.avgScores)
-		std::cout << v << " ";
-	std::cout << "\n";
-
-	std::cout << "===============================\n";
-}
-
-void printCPPToPython(int ix, const CPPToPython& data) {
-	// This function is written by ChatGPT
-	// ANSI color codes
-	constexpr const char* RESET  = "\033[0m";
-	constexpr const char* TITLE  = "\033[1;36m"; // bold cyan
-	constexpr const char* LABEL  = "\033[36m";   // cyan
-	constexpr const char* VALUE  = "\033[33m";   // yellow
-	constexpr const char* HEADER = "\033[1;35m"; // bold magenta
-
-	constexpr int labelWidth = 28;
-	constexpr int valueWidth = 10;
-
-	std::cout << TITLE
-			  << "=== CPPToPython (ix = " << ix << ") ==="
-			  << RESET << "\n\n";
-
-	std::cout << LABEL << "Finished networks this iter: "
-			  << VALUE << data.finishedNetworksThisIter
-			  << RESET << "\n\n";
-
-	std::cout << HEADER << "Timing:\n" << RESET;
-
-	std::cout << std::fixed << std::setprecision(3);
-
-	auto printTime = [&](const char* label, double value) {
-		std::cout << "  "
-				  << LABEL << std::left << std::setw(labelWidth)
-				  << label << RESET
-				  << ": "
-				  << VALUE << std::right << std::setw(valueWidth)
-				  << value << " ms" << RESET << "\n";
-	};
-
-	printTime("timePerNetwork", data.timePerNetwork);
-	printTime("timePerIter", data.timePerIter);
-	printTime("timeComputationNetwork", data.timeComputationNetwork);
-	printTime("timeComputationSimulation", data.timeComputetionSimulation);
-
-	std::cout << "\n" << HEADER
-			  << "Best scores (" << data.bestScores.size() << "):"
-			  << RESET << "\n  ";
-
-	for (double v : data.bestScores)
-		std::cout << VALUE << v << " " << RESET;
-
-	std::cout << "\n\n" << HEADER
-			  << "Average scores (" << data.avgScores.size() << "):"
-			  << RESET << "\n  ";
-
-	for (double v : data.avgScores)
-		std::cout << VALUE << v << " " << RESET;
-
-	std::cout << "\n\n";
-}
 
 void printCPPToPythonLive(int ix, const CPPToPython& data)
 {
@@ -189,6 +107,25 @@ void printCPPToPythonLive(int ix, const CPPToPython& data)
     std::cout << std::flush;
 }
 
+void printTimingOneLine(const CPPToPython& data)
+{
+
+	std::cout
+		<< "Mutation Step: " << data.timePerMutate
+		<< " | Per Network: " << data.timePerNetwork
+		<< " | Complete Iteration: " << data.timePerIter
+		<< " | comp(net): " << data.timeComputationNetwork
+		<< " | comp(sim): " << data.timeComputetionSimulation
+		<< " us\n"
+		<< std::flush;
+
+	std::cout << data.finishedIterations << ": ";
+	for (auto &v : data.bestScores) {
+		std::cout << v << ", ";
+	}
+	std::cout << "\n";
+}
+
 std::atomic<bool> stopFlag{false};
 void stoppingCondition() {
 	std::cin.get();
@@ -220,9 +157,22 @@ int main() {
 	int ix = 0;
 	while (!stopFlag) {
 		auto out = trainingLib.getInfo();
-		printCPPToPythonLive(ix++, out);
-		std::this_thread::sleep_for(std::chrono::milliseconds{5000});
+		printTimingOneLine(out);
+		std::this_thread::sleep_for(std::chrono::milliseconds{500});
 	}
 
 	trainingLib.stop();
+
+	// Mutation Step: 276 | Per Network: 11 | Complete Iteration: 11554 | comp(net): 14084 | comp(sim): 118 ms
+	// Mutation Step: 268 | Per Network: 10 | Complete Iteration: 11072 | comp(net): 14094 | comp(sim): 122 ms
+	// Mutation Step: 282 | Per Network:  2 | Complete Iteration:  2418 | comp(net):  2190 | comp(sim): 98 ms
+
+	// USING MICROSECONDS NOW
+	// Mutation Step: 281674 | Per Network: 2186 | Complete Iteration: 2.45567e+06 | comp(net): 2.21168e+06 | comp(sim):  98702 us
+	// Mutation Step: 277687 | Per Network: 2231 | Complete Iteration:     2457620 | comp(net): 4.01443e+06 | comp(sim): 177598 us (support for threading)
+
+	// USING THREADING
+	// Mutation Step: 278486 | Per Network: 3792 | Complete Iteration: 531463 | comp(net): 7.51261e+07 | comp(sim): 2.86314e+06 us
+	// Mutation Step: 284344 | Per Network: 3814 | Complete Iteration: 615487 | comp(net): 6.88778e+06 | comp(sim): 284046 us
+	// Mutation Step:  59652 | Per Network: 2322 | Complete Iteration: 596091 | comp(net): 1.67127e+07 | comp(sim): 725161 us
 }

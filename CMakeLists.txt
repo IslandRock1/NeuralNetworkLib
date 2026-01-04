@@ -6,6 +6,14 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(Projects/PendulumSimulation)
 add_subdirectory(Protobuf)
 
+include(FetchContent)
+FetchContent_Declare(
+        Eigen3
+        GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+        GIT_TAG 5.0.1
+)
+FetchContent_MakeAvailable(Eigen3)
+
 set(SHARED_SOURCES
         src/ActivationFunctions.cpp
         src/Node.cpp
@@ -15,7 +23,7 @@ set(SHARED_SOURCES
 )
 
 add_library(NeuralNetworkLib STATIC ${SHARED_SOURCES})
-target_link_libraries(NeuralNetworkLib PUBLIC PendulumTestLib neuralnetwork_msg)
+target_link_libraries(NeuralNetworkLib PUBLIC PendulumTestLib neuralnetwork_msg Eigen3::Eigen)
 target_include_directories(NeuralNetworkLib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 set(PYBIND11_FINDPYTHON ON)

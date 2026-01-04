@@ -8,8 +8,10 @@
 #include "TrainingLib.hpp"
 #include "Tester.hpp"
 
-TrainingLib::TrainingLib(PythonToCPP &settings)
-	: _settings(std::move(settings)) {
+TrainingLib::TrainingLib(PythonToCPP settings)
+	: _settings(std::move(settings)), _threadScores(settings.networksPerIter) {
+
+	std::cout << "Num threads: " << numThreads << "\n";
 
 	_outputStats = CPPToPython{{}, {}, 0, 0, 0.0, 0.0, 0.0, 0.0};
 
@@ -26,6 +28,8 @@ TrainingLib::TrainingLib(PythonToCPP &settings)
 
 	_computeOrganizingThread = std::jthread{&TrainingLib::_run, this};
 
+	auto path = std::filesystem::current_path();
+	std::cout << "Current path: " << path << "\n";
 	std::filesystem::create_directory("models");
 }
 
@@ -49,27 +53,27 @@ CPPToPython TrainingLib::getInfo() {
 	double timePerMutation = -1;
 	if (_totalMutationsDone > 0) {
 		std::lock_guard lock(_mutationMutex);
-		timePerMutation = std::chrono::duration_cast<std::chrono::milliseconds>(_totalTimePerMutation).count() / _totalMutationsDone;
+		timePerMutation = std::chrono::duration_cast<std::chrono::microseconds>(_totalTimePerMutation).count() / _totalMutationsDone;
 	}
 
 	double timePerIteration = -1;
 	if (_totalIterationsTested > 0) {
 		std::lock_guard lock(_networkMutex);
-		timePerIteration = std::chrono::duration_cast<std::chrono::milliseconds>(_totalTimePerIteration).count() / _totalIterationsTested;
+		timePerIteration = std::chrono::duration_cast<std::chrono::microseconds>(_totalTimePerIteration).count() / _totalIterationsTested;
 	}
 
 	double timePerNetwork = -1;
 	if (_totalNetworksTested > 0) {
 		std::lock_guard lock(_networkMutex);
-		timePerNetwork = std::chrono::duration_cast<std::chrono::milliseconds>(_totalTimePerNetwork).count() / _totalNetworksTested;
+		timePerNetwork = std::chrono::duration_cast<std::chrono::microseconds>(_totalTimePerNetwork).count() / _totalNetworksTested;
 	}
 
 	double totalSimTime;
 	double totalComputeTime;
 	{
 		std::lock_guard lock(_computeSimMutex);
-		totalSimTime = std::chrono::duration_cast<std::chrono::milliseconds>(_totalTimeSim).count();
-		totalComputeTime = std::chrono::duration_cast<std::chrono::milliseconds>(_totalTimeCompute).count();
+		totalSimTime = std::chrono::duration_cast<std::chrono::microseconds>(_totalTimeSim).count();
+		totalComputeTime = std::chrono::duration_cast<std::chrono::microseconds>(_totalTimeCompute).count();
 	}
 
 	std::lock_guard<std::mutex> lock(_pythonMutex);
@@ -144,30 +148,29 @@ void TrainingLib::_testIteration() {
 		_outputStats.finishedNetworksThisIter = 0;
 	}
 
+	nextIndex.store(0, std::memory_order_relaxed);
+	stopThreads.store(false);
+
+	_threadScores.clear();
+	_threadScores.resize(_networks.size());
 	_scores.clear();
 
 	std::chrono::duration<double> networkTime{};
 	int numNetworks = 0;
 
-	for (auto &nn : _networks) {
-		double totReward = 0.0;
+	for (int i = 0; i < numThreads; i++) {
+		workers.emplace_back(&TrainingLib::_threadTask, this);
+	}
 
-		auto t0 = std::chrono::high_resolution_clock::now();
-		for (int i = 0; i < _settings.numSimulations; i++) {
-			totReward += _testSimulation(nn);
-			if (_stopFlag) {return;}
-		}
-		auto t1 = std::chrono::high_resolution_clock::now();
-		networkTime += (t1 - t0);
-		numNetworks++;
+	for (auto& t : workers) {
+		t.join();
+	}
 
-		_scores.emplace_back(totReward, nn.copy());
-		if (_stopFlag) {return;}
+	workers.clear();
 
-		{
-			std::lock_guard<std::mutex> lock(_pythonMutex);
-			_outputStats.finishedNetworksThisIter++;
-		}
+	// After all threads are finished
+	for (int ix = 0; ix < _networks.size(); ix++) {
+		_scores.emplace_back(_threadScores[ix], _networks[ix].copy());
 	}
 
 	{
@@ -179,6 +182,38 @@ void TrainingLib::_testIteration() {
 		std::lock_guard<std::mutex> lock(_networkMutex);
 		_totalTimePerNetwork += networkTime;
 		_totalNetworksTested += numNetworks;
+	}
+}
+
+void TrainingLib::_threadTask() {
+
+	while (true) {
+		size_t ix = nextIndex.fetch_add(1, std::memory_order_relaxed);
+		if (ix >= _networks.size() || stopThreads.load()) return;
+
+		double totReward = 0.0;
+		NeuralNetwork &network = _networks[ix];
+
+		auto t0 = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < _settings.numSimulations; i++) {
+			totReward += _testSimulation(network);
+			if (_stopFlag) {return;}
+		}
+		auto t1 = std::chrono::high_resolution_clock::now();
+
+		{
+			std::lock_guard<std::mutex> lock(_networkMutex);
+			_totalTimePerNetwork += (t1 - t0);
+			_totalNetworksTested++;
+		}
+
+		_threadScores[ix] = totReward;
+		if (_stopFlag) {return;}
+
+		{
+			std::lock_guard<std::mutex> lock(_pythonMutex);
+			_outputStats.finishedNetworksThisIter++;
+		}
 	}
 }
 
@@ -231,44 +266,56 @@ int randomInt(int min = 0.0, int max = 1.0) {
 }
 
 void TrainingLib::_mutation() {
-	// TMP!
+	numKeepNetworks = static_cast<int>(_settings.percentNetworksKept * _settings.networksPerIter);
+	numRandomNetworks = static_cast<int>(_settings.percentNetworksNew * _settings.networksPerIter);
+	numModifiableNetworks = static_cast<int>(_settings.percentNetworksModifiable * _settings.networksPerIter);
+	numModifiedNetworks = _settings.networksPerIter - numKeepNetworks - numRandomNetworks;
 
-	int numKeptNetworks = static_cast<int>(_settings.percentNetworksKept * _settings.networksPerIter);
-	int numNewNetworks = static_cast<int>(_settings.percentNetworksNew * _settings.networksPerIter);
-	int numModifiableNetworks = static_cast<int>(_settings.percentNetworksModifiable * _settings.networksPerIter);
+	newNetworks.clear();
+	newNetworks.resize(_settings.networksPerIter, _networks[0].copy());
 
-	std::vector<NeuralNetwork> newNetworks;
-	for (int i = 0; i < numKeptNetworks; i++) {
-		auto net = _scores[i].second;
-		newNetworks.emplace_back(net.copy());
+	nextIndexMutation.store(0, std::memory_order_relaxed);
+	stopThreadsMutation.store(false);
 
-		if (_stopFlag) {return;}
+	for (int i = 0; i < numThreads; i++) {
+		mutationWorkers.emplace_back(&TrainingLib::mutationTask, this);
 	}
 
-	for (int i = 0; i < numNewNetworks; i++) {
-		NeuralNetwork nn{_layerSizes};
-		newNetworks.emplace_back(nn);
-
-		if (_stopFlag) {return;}
+	for (auto& t : mutationWorkers) {
+		t.join();
 	}
 
-	while (newNetworks.size() < _settings.networksPerIter) {
-		auto randIx = randomInt(0, numModifiableNetworks);
-		auto networkCopy = _scores[randIx].second.copy();
-
-		networkCopy.executeRandomChange({
-			_settings.numChanges,
-			_settings.temperature,
-			_settings.percentChangeFunction,
-			_settings.percentChangeBias,
-			_settings.percentChangeWeight});
-
-		newNetworks.emplace_back(networkCopy);
-
-		if (_stopFlag) {return;}
-	}
+	mutationWorkers.clear();
 
 	_networks = std::move(newNetworks);
+}
+
+void TrainingLib::mutationTask() {
+	while (true) {
+		size_t ix = nextIndexMutation.fetch_add(1, std::memory_order_relaxed);
+		if (ix >= _settings.networksPerIter || stopThreadsMutation.load()) return;
+
+		if (ix < numKeepNetworks) {
+			auto net = _scores[ix].second;
+			newNetworks[ix] = net.copy();
+		} else if (ix < numKeepNetworks + numRandomNetworks) {
+			NeuralNetwork nn{_layerSizes};
+			newNetworks[ix] = nn;
+		} else if (ix < _settings.networksPerIter) {
+			auto randIx = randomInt(0, numModifiableNetworks);
+			auto networkCopy = _scores[randIx].second.copy();
+
+			networkCopy.executeRandomChange({
+				_settings.numChanges,
+				_settings.temperature,
+				_settings.percentChangeFunction,
+				_settings.percentChangeBias,
+				_settings.percentChangeWeight});
+
+			newNetworks[ix] = networkCopy;
+		}
+
+	}
 }
 
 

@@ -12,7 +12,7 @@
 
 class TrainingLib {
 public:
-	TrainingLib(PythonToCPP &settings);
+	TrainingLib(PythonToCPP settings);
 
 	void stop();
 	void setInfo(PythonToCPP &settings);
@@ -22,9 +22,11 @@ private:
 	void _run();
 	void _step();
 	void _testIteration();
-	void _threadTask(int ix);
+	void _threadTask();
 	void _mutation();
 	double _testSimulation(NeuralNetwork &network);
+
+	void mutationTask();
 
 	PythonToCPP _settings;
 	CPPToPython _outputStats;
@@ -33,6 +35,7 @@ private:
 	int _iteration = 0;
 	std::vector<int> _layerSizes;
 
+	std::vector<double> _threadScores;
 	std::vector<std::pair<double, NeuralNetwork>> _scores;
 
 	std::atomic_bool _stopFlag = false;
@@ -56,6 +59,22 @@ private:
 	std::chrono::duration<double> _totalTimeCompute{};
 	std::chrono::duration<double> _totalTimeSim{};
 	std::mutex _computeSimMutex;
+
+	std::atomic<size_t> nextIndex{0};
+	std::atomic<bool> stopThreads{false};
+
+	const size_t numThreads = std::thread::hardware_concurrency() - 1;
+	std::vector<std::thread> workers;
+
+	std::vector<std::thread> mutationWorkers;
+	std::vector<NeuralNetwork> newNetworks;
+
+	std::atomic<size_t> nextIndexMutation{0};
+	std::atomic<bool> stopThreadsMutation{false};
+	int numKeepNetworks = 0;
+	int numRandomNetworks = 0;
+	int numModifiedNetworks = 0;
+	int numModifiableNetworks = 0;
 };
 
 

@@ -35,6 +35,15 @@ PendulumInfo PendulumSimulation::getInfo() const {
 }
 
 void PendulumSimulation::update(const double dt, const double externalForce) {
+	double force;
+	if (externalForce > _maxForce) {
+		force = _maxForce;
+	} else if (externalForce < -_maxForce) {
+		force = -_maxForce;
+	} else {
+		force = externalForce;
+	}
+
 	double _dt = dt / _simulationSteps;
 	for (int i = 0; i < _simulationSteps; i++) {
 		auto sinTheta = std::sin(_anglePos + _pi);
@@ -42,14 +51,14 @@ void PendulumSimulation::update(const double dt, const double externalForce) {
 
 		auto t0 = _massPendulum * _pendulumLength * _angleVel * _angleVel * sinTheta;
 		auto t1 = _massPendulum * _g * sinTheta * cosTheta;
-		auto t2 = externalForce;
+		auto t2 = force;
 		auto n = _massCart + _massPendulum * sinTheta * sinTheta;
 
 		auto positionAcc = (t0 + t1 + t2) / n;
 
 		t0 = -_massPendulum * _pendulumLength * _angleVel * _angleVel * sinTheta * cosTheta;
 		t1 = -(_massPendulum + _massCart) * _g * sinTheta;
-		t2 = -externalForce * cosTheta;
+		t2 = -force * cosTheta;
 		n = _pendulumLength * (_massCart + _massPendulum * sinTheta * sinTheta);
 
 		auto rotationAcc = (t0 + t1 + t2) / n;

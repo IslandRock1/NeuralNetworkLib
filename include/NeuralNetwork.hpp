@@ -11,6 +11,7 @@
 
 class NeuralNetwork {
 public:
+	explicit NeuralNetwork();
 	explicit NeuralNetwork(const std::string &path);
 	explicit NeuralNetwork(const std::vector<int> &layerSizes);
 	std::vector<double> compute(std::vector<double> inputValues);

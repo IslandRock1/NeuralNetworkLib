@@ -21,7 +21,7 @@ SimulationInfo Tester::update(const double externalForce, const std::vector<doub
 	const auto force = std::max(-_maxForce, std::min(_maxForce, externalForce));
 
 	_sumTime += _dt;
-	_simulation.update(_dt, force);
+	_simulation.update(_dt, force * 10.0);
 
 	const bool isFinished = _sumTime >= _maxTime;
 	const double progress = _sumTime / _maxTime;
@@ -33,7 +33,10 @@ SimulationInfo Tester::update(const double externalForce, const std::vector<doub
 double Tester::rewardFunction(const std::vector<double>& constValues) {
 	auto [anglePos, angleVel, cartPos, cartVel] = _simulation.getInfo();
 	const double error = abs(anglePos);
-	const bool overThreshold = (error <= (3.1415926 / 3.0));
+
+	double div = 5.0;
+	if (constValues.size() >= 5) {div = constValues[4];}
+	const bool overThreshold = (error <= (3.1415926 / div));
 	_runningCount = (_runningCount + 1) * overThreshold;
 
 	double angleVelTerm = angleVel * angleVel;

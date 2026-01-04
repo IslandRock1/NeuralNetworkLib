@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <Eigen/Dense>
 
 #include "Layer.hpp"
 
@@ -9,18 +10,39 @@ Layer::Layer(int numNodes, int numInputs, bool zeroBias) {
 	}
 }
 
-std::vector<double> Layer::computeLayer(const std::vector<double>& inputValues) {
+// std::vector<double> Layer::computeLayer(const std::vector<double>& inputValues) {
+// 	std::vector<double> output;
+//
+// 	for (auto& node : nodes) {
+//
+// 		double tmp = 0.0;
+// 		auto nodeWeights = node.weights;
+// 		for (int j = 0; j < inputValues.size(); j++) {
+// 			tmp += inputValues[j] * nodeWeights[j];
+// 		}
+//
+// 		output.push_back(node.getActivationValue(tmp));
+// 	}
+//
+// 	return output;
+// }
+
+std::vector<double> Layer::computeLayer(const std::vector<double>& inputValues)
+{
 	std::vector<double> output;
+	output.reserve(nodes.size());
 
-	for (int i = 0; i < nodes.size(); i++) {
+	// Map std::vector → Eigen (no copy)
+	Eigen::Map<const Eigen::VectorXd> input(inputValues.data(),
+											inputValues.size());
 
-		double tmp = 0.0;
-		auto nodeWeights = nodes[i].weights;
-		for (int j = 0; j < inputValues.size(); j++) {
-			tmp += inputValues[j] * nodeWeights[j];
-		}
+	for (auto& node : nodes)
+	{
+		Eigen::Map<const Eigen::VectorXd> weights(node.weights.data(),
+												  node.weights.size());
 
-		output.push_back(nodes[i].getActivationValue(tmp));
+		double tmp = input.dot(weights);   // SIMD-optimized
+		output.push_back(node.getActivationValue(tmp));
 	}
 
 	return output;
