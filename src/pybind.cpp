@@ -4,9 +4,13 @@
 
 #include "ComunicationStruct.hpp"
 #include "NeuralNetwork.hpp"
+
 #include "PendulumSimulation.hpp"
-#include "TrainingLib.hpp"
 #include "PendulumTester.hpp"
+#include "DoublePendulumSimulation.hpp"
+#include "DoublePendulumTester.hpp"
+
+#include "TrainingLib.hpp"
 
 namespace py = pybind11;
 
@@ -38,6 +42,7 @@ PYBIND11_MODULE(NeuralNetworkPython, m) {
 	py::class_<CPPToPython>(m, "CPPToPython")
 		.def(py::init<>())
 
+		.def_readwrite("validationScores", &CPPToPython::validationScores)
 		.def_readwrite("bestScores", &CPPToPython::bestScores)
 		.def_readwrite("avgScores", &CPPToPython::avgScores)
 
@@ -72,6 +77,25 @@ PYBIND11_MODULE(NeuralNetworkPython, m) {
 		.def("update", &PendulumSimulation::update)
 	;
 
+	py::class_<DoublePendulumInfo>(m, "DoublePendulumInfo")
+		.def(py::init<>())
+
+		.def_readwrite("anglePos0", &DoublePendulumInfo::anglePos0)
+		.def_readwrite("anglePos1", &DoublePendulumInfo::anglePos1)
+
+		.def_readwrite("angleVel0", &DoublePendulumInfo::angleVel0)
+		.def_readwrite("angleVel1", &DoublePendulumInfo::angleVel1)
+
+		.def_readwrite("cartPos", &DoublePendulumInfo::cartPos)
+		.def_readwrite("cartVel", &DoublePendulumInfo::cartVel)
+	;
+
+	py::class_<DoublePendulumSimulation>(m, "DoublePendulumSimulation")
+		.def(py::init<>())
+		.def("getInfo", &DoublePendulumSimulation::getInfo)
+		.def("update", &DoublePendulumSimulation::update)
+	;
+
 	py::class_<TrainingLib>(m, "TrainingLib")
 		.def(py::init<PythonToCPP>(), py::arg("PythonToCPP"))
 		.def("stop", &TrainingLib::stop)
@@ -93,5 +117,12 @@ PYBIND11_MODULE(NeuralNetworkPython, m) {
 
 		.def("getInfo", &Pendulum::PendulumTester::getInfo)
 		.def("update", &Pendulum::PendulumTester::update)
+	;
+
+	py::class_<DoublePendulum::DoublePendulumTester>(m, "DoublePendulumTester")
+		.def(py::init<>())
+
+		.def("getInfo", &DoublePendulum::DoublePendulumTester::getInfo)
+		.def("update", &DoublePendulum::DoublePendulumTester::update)
 	;
 }

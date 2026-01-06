@@ -30,7 +30,7 @@ private:
 
 	void mutationTask();
 
-	using TesterFactory = std::function<std::unique_ptr<PendulumTester>()>;
+	using TesterFactory = std::function<std::unique_ptr<Tester>()>;
 	TesterFactory testerFactory;
 
 	PythonToCPP _settings;
@@ -46,8 +46,6 @@ private:
 	std::atomic_bool _stopFlag = false;
 	std::jthread _computeOrganizingThread;
 	std::vector<NeuralNetwork> _networks;
-	std::vector<double> _bestScores;
-	std::vector<double> _avgScores;
 
 	std::chrono::duration<double> _totalTimePerMutation{};
 	long long unsigned int _totalMutationsDone = 0;
@@ -68,7 +66,7 @@ private:
 	std::atomic<size_t> nextIndex{0};
 	std::atomic<bool> stopThreads{false};
 
-	const size_t numThreads = std::thread::hardware_concurrency() - 1;
+	const size_t numThreads = std::thread::hardware_concurrency() / 2 - 1;
 	std::vector<std::thread> workers;
 
 	std::vector<std::thread> mutationWorkers;

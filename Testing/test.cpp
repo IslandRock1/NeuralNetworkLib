@@ -8,8 +8,6 @@
 #include "ComunicationStruct.hpp"
 #include "TrainingLib.hpp"
 
-
-
 void printCPPToPythonLive(int ix, const CPPToPython& data)
 {
     // ANSI color codes
@@ -109,14 +107,9 @@ void printCPPToPythonLive(int ix, const CPPToPython& data)
 
 void printTimingOneLine(const CPPToPython& data)
 {
-
 	std::cout
-		<< "Mutation Step: " << data.timePerMutate
-		<< " | Per Network: " << data.timePerNetwork
-		<< " | Complete Iteration: " << data.timePerIter
-		<< " | comp(net): " << data.timeComputationNetwork
-		<< " | comp(sim): " << data.timeComputetionSimulation
-		<< " us\n"
+		<< "Curr Iter: " << data.finishedNetworksThisIter
+		<< "\n"
 		<< std::flush;
 
 	std::cout << data.finishedIterations << ": ";
@@ -135,9 +128,9 @@ void stoppingCondition() {
 int main() {
 
 	PythonToCPP initSettings{
-		"Pendulum",
-		{20, 50, 20},
-		1000,
+		"MNIST",
+		{20, 20},
+		50,
 		1,
 		20,
 		0.1,
@@ -175,4 +168,7 @@ int main() {
 	// Mutation Step: 278486 | Per Network: 3792 | Complete Iteration: 531463 | comp(net): 7.51261e+07 | comp(sim): 2.86314e+06 us
 	// Mutation Step: 284344 | Per Network: 3814 | Complete Iteration: 615487 | comp(net): 6.88778e+06 | comp(sim): 284046 us
 	// Mutation Step:  59652 | Per Network: 2322 | Complete Iteration: 596091 | comp(net): 1.67127e+07 | comp(sim): 725161 us
+
+	// MNIST
+	// Mutation Step: 5.26135e+06 | Per Network: 876227 | Complete Iteration: 6.97054e+07 | comp(net): 5.15193e+08 | comp(sim): 4.76957e+06 us
 }

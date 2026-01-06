@@ -27,17 +27,18 @@ struct PythonToCPP {
 };
 
 struct CPPToPython {
-	std::vector<double> bestScores;
-	std::vector<double> avgScores;
+	std::vector<double> bestScores = {};
+	std::vector<double> avgScores = {};
+	std::vector<double> validationScores = {};
 
-	int finishedIterations;
-	int finishedNetworksThisIter;
+	int finishedIterations = 0;
+	int finishedNetworksThisIter = 0;
 
-	double timePerMutate;
-	double timePerNetwork;
-	double timePerIter;
-	double timeComputationNetwork;
-	double timeComputetionSimulation;
+	double timePerMutate = 0.0;
+	double timePerNetwork = 0.0;
+	double timePerIter = 0.0;
+	double timeComputationNetwork = 0.0;
+	double timeComputetionSimulation = 0.0;
 };
 
 #endif //NEURALNETWORKLIB_COMUNICATIONSTRUCT_HPP

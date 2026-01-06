@@ -4,6 +4,8 @@ project(NeuralNetworkLib)
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(Projects/Pendulum)
+add_subdirectory(Projects/DoublePendulum)
+add_subdirectory(Projects/MNIST_Digits)
 add_subdirectory(Protobuf)
 
 include(FetchContent)
@@ -23,7 +25,7 @@ set(SHARED_SOURCES
 )
 
 add_library(NeuralNetworkLib STATIC ${SHARED_SOURCES})
-target_link_libraries(NeuralNetworkLib PUBLIC PendulumTestLib neuralnetwork_msg Eigen3::Eigen)
+target_link_libraries(NeuralNetworkLib PUBLIC MNISTTestLib PendulumTestLib DoublePendulumTestLib neuralnetwork_msg Eigen3::Eigen)
 target_include_directories(NeuralNetworkLib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 set(PYBIND11_FINDPYTHON ON)

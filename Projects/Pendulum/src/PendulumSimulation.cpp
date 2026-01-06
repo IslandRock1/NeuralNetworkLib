@@ -4,7 +4,7 @@
 
 #include "PendulumSimulation.hpp"
 
-double randomDoublePendulum(double min = 0.0, double max = 1.0) {
+double randomPendulum(double min = 0.0, double max = 1.0) {
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
 
@@ -15,11 +15,11 @@ double randomDoublePendulum(double min = 0.0, double max = 1.0) {
 PendulumSimulation::PendulumSimulation() {
 	double offset = 0.01;
 	double pi = 3.1415926;
-	_anglePos = randomDoublePendulum(pi-offset, pi+offset);
-	_angleVel = randomDoublePendulum(-0.1, 0.1);
+	_anglePos = randomPendulum(pi-offset, pi+offset);
+	_angleVel = randomPendulum(-0.1, 0.1);
 
-	_cartPos = randomDoublePendulum(-0.1, 0.1);
-	_cartVel = randomDoublePendulum(-0.1, 0.1);
+	_cartPos = randomPendulum(-0.1, 0.1);
+	_cartVel = randomPendulum(-0.1, 0.1);
 }
 
 PendulumSimulation::PendulumSimulation(const PendulumInfo& info)

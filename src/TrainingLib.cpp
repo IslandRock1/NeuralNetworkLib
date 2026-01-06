@@ -7,15 +7,25 @@
 
 #include "TrainingLib.hpp"
 #include "PendulumTester.hpp"
+#include "DoublePendulumTester.hpp"
+#include "MNISTDigitTester.hpp"
 
 TrainingLib::TrainingLib(PythonToCPP settings)
 	: _settings(std::move(settings)), _threadScores(_settings.networksPerIter) {
 
-	_outputStats = CPPToPython{{}, {}, 0, 0, 0.0, 0.0, 0.0, 0.0};
+	_outputStats = CPPToPython{};
 
 	if (_settings.projectName == "Pendulum") {
 		testerFactory = [] {
 			return std::make_unique<Pendulum::PendulumTester>();
+		};
+	} else if (_settings.projectName == "DoublePendulum") {
+		testerFactory = [] {
+			return std::make_unique<DoublePendulum::DoublePendulumTester>();
+		};
+	} else if (_settings.projectName == "MNIST") {
+		testerFactory = [] {
+			return std::make_unique<MNISTDigit::MNISTDigitTester>();
 		};
 	} else {
 		stop();
@@ -135,12 +145,6 @@ void TrainingLib::_step() {
 		num += 1;
 	}
 
-	{
-		std::lock_guard<std::mutex> lock(_pythonMutex);
-		_outputStats.bestScores.emplace_back(bestScore);
-		_outputStats.avgScores.emplace_back(tot / num);
-	}
-
 	auto t0_mut = std::chrono::high_resolution_clock::now();
 	_mutation();
 	auto t1_mut = std::chrono::high_resolution_clock::now();
@@ -149,6 +153,30 @@ void TrainingLib::_step() {
 		std::lock_guard<std::mutex> lock(_mutationMutex);
 		_totalTimePerMutation += (t1_mut - t0_mut);
 		_totalMutationsDone++;
+	}
+
+	auto tester = testerFactory();
+	tester->setValidation();
+	auto network = _networks[0];
+	double score = 0.0;
+
+	while (true) {
+		auto networkInfo = tester->getInfo();
+
+		auto output = network.compute(networkInfo);
+		auto simInfo = tester->update(output, _settings.constValues);
+
+		if (simInfo.isFinished) {
+			score = simInfo.reward;
+			break;
+		}
+	}
+
+	{
+		std::lock_guard<std::mutex> lock(_pythonMutex);
+		_outputStats.bestScores.emplace_back(bestScore);
+		_outputStats.avgScores.emplace_back(tot / num);
+		_outputStats.validationScores.emplace_back(score);
 	}
 }
 
