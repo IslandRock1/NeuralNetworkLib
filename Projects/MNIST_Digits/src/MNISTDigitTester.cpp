@@ -35,7 +35,8 @@ SimulationInfo MNISTDigit::MNISTDigitTester::update(std::vector<double>& network
 		numImages = _datasetValidation.numImages;
 	}
 
-	if (network[correct] == *std::max_element(network.begin(), network.end())) {
+	int ix = std::distance(network.begin(), std::max_element(network.begin(), network.end()));
+	if (correct == ix) {
 		numCorrect++;
 	}
 	_ix++;

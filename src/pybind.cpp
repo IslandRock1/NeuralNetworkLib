@@ -134,4 +134,15 @@ PYBIND11_MODULE(NeuralNetworkPython, m) {
 		.def("getInfo", &MNISTDigit::MNISTDigitTester::getInfo)
 		.def("update", &MNISTDigit::MNISTDigitTester::update)
 	;
+
+	py::class_<mnist::MNISTDataset>(m, "MNISTDataset")
+		.def_readwrite("numImages", &mnist::MNISTDataset::numImages)
+		.def_readwrite("rows", &mnist::MNISTDataset::rows)
+		.def_readwrite("cols", &mnist::MNISTDataset::cols)
+		.def_readwrite("images", &mnist::MNISTDataset::images)
+		.def_readwrite("labels", &mnist::MNISTDataset::labels)
+	;
+
+	m.def("loadMNISTValidation", &mnist::getMNISTValidation, py::arg("imageFile"), py::arg("labelFile"));
+
 }

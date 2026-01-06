@@ -3,6 +3,7 @@ from time import perf_counter, sleep
 from math import sin, cos
 
 from NeuralNetworkPython import CPPToPython, PythonToCPP, NeuralNetwork, PendulumInfo, PendulumSimulation, TrainingLib
+from NeuralNetworkPython import loadMNISTValidation, MNISTDataset
 
 print()
 
@@ -63,7 +64,16 @@ def testUsing():
         pendulumSim.update(1.0 / 60.0, 100)
         print(inputValues)
 
+def testDataset():
+    dataset = loadMNISTValidation(
+        "Projects/MNIST_Digits/data/t10k-images.idx3-ubyte",
+        "Projects/MNIST_Digits/data/t10k-labels.idx1-ubyte")
+
+    img = dataset.images[0]
+    print(img)
+
 def main():
-    testTraining()
+    testDataset()
+    # testTraining()
 
 if (__name__ == "__main__"): main()
