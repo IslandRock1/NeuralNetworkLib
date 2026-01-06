@@ -8,7 +8,7 @@
 
 namespace Pendulum {
 
-	class PendulumTester: public ::PendulumTester{
+	class PendulumTester: public ::Tester{
 	public:
 
 		PendulumTester();
@@ -18,6 +18,9 @@ namespace Pendulum {
 
 		int numInputNodes() const override { return 5; }
 		int numOutputNodes() const override { return 1; }
+
+		void setValidation() override {};
+		void setTraining() override {};
 
 	private:
 		PendulumSimulation _simulation;

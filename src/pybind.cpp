@@ -10,6 +10,8 @@
 #include "DoublePendulumSimulation.hpp"
 #include "DoublePendulumTester.hpp"
 
+#include "MNISTDigitTester.hpp"
+
 #include "TrainingLib.hpp"
 
 namespace py = pybind11;
@@ -124,5 +126,12 @@ PYBIND11_MODULE(NeuralNetworkPython, m) {
 
 		.def("getInfo", &DoublePendulum::DoublePendulumTester::getInfo)
 		.def("update", &DoublePendulum::DoublePendulumTester::update)
+	;
+
+	py::class_<MNISTDigit::MNISTDigitTester>(m, "MNISTDigitTester")
+		.def(py::init<>())
+
+		.def("getInfo", &MNISTDigit::MNISTDigitTester::getInfo)
+		.def("update", &MNISTDigit::MNISTDigitTester::update)
 	;
 }
