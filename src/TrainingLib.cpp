@@ -44,6 +44,11 @@ TrainingLib::TrainingLib(PythonToCPP settings)
 
 	while (_networks.size() < _settings.networksPerIter) {
 		NeuralNetwork nn{_layerSizes};
+
+		if (! _settings.activationFunctions.empty()) {
+			nn.setActivationFunctions(_settings.activationFunctions);
+		}
+
 		_networks.emplace_back(nn);
 	}
 
@@ -164,6 +169,7 @@ void TrainingLib::_step() {
 		auto networkInfo = tester->getInfo();
 
 		auto output = network.compute(networkInfo);
+		if (network.is_softmax()) {output = network.softmax(output);}
 		auto simInfo = tester->update(output, _settings.constValues);
 
 		if (simInfo.isFinished) {
@@ -266,6 +272,10 @@ double TrainingLib::_testSimulation(NeuralNetwork& network) {
 
 		auto t0 = std::chrono::high_resolution_clock::now();
 		auto output = network.compute(networkInfo);
+		if (network.is_softmax()) {
+			output = network.softmax(output);
+		}
+
 		auto t1 = std::chrono::high_resolution_clock::now();
 		auto simInfo = tester->update(output, _settings.constValues);
 		auto t2 = std::chrono::high_resolution_clock::now();
@@ -338,6 +348,11 @@ void TrainingLib::mutationTask() {
 			newNetworks[ix] = net.copy();
 		} else if (ix < numKeepNetworks + numRandomNetworks) {
 			NeuralNetwork nn{_layerSizes};
+
+			if (! _settings.activationFunctions.empty()) {
+				nn.setActivationFunctions(_settings.activationFunctions);
+			}
+
 			newNetworks[ix] = nn;
 		} else if (ix < _settings.networksPerIter) {
 			auto randIx = randomInt(0, numModifiableNetworks);
@@ -349,6 +364,10 @@ void TrainingLib::mutationTask() {
 				_settings.percentChangeFunction,
 				_settings.percentChangeBias,
 				_settings.percentChangeWeight});
+
+			if (! _settings.activationFunctions.empty()) {
+				networkCopy.setActivationFunctions(_settings.activationFunctions);
+			}
 
 			newNetworks[ix] = networkCopy;
 		}

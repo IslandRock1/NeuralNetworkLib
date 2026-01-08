@@ -5,10 +5,14 @@
 
 ActivationFunctions::ActivationFunctions(const ActivationFunction function): _function(function) {}
 
-double ActivationFunctions::execute(const double value) {
+double ActivationFunctions::execute(const double value) const {
 	switch (_function) {
 		case ActivationFunction::TanH: {
 			return TanH(value);
+		}
+
+		case ActivationFunction::LeakyReLU: {
+			return LeakyReLU(value);
 		}
 
 		case ActivationFunction::ReLU: {
@@ -20,7 +24,11 @@ double ActivationFunctions::execute(const double value) {
 		}
 
 		case ActivationFunction::Linear: {
-			return Linear(value);
+				return Linear(value);
+		}
+
+		default: {
+			throw std::runtime_error("Invalid function.");
 		}
 	}
 }
@@ -29,8 +37,13 @@ double ActivationFunctions::TanH(const double value) {
 	return std::tanh(value);
 }
 
+double ActivationFunctions::LeakyReLU(double value) {
+	return std::max(0.01 * value, value);
+}
+
+
 double ActivationFunctions::ReLU(const double value) {
-	return value ? value > 0 : 0.0;
+	return value > 0 ? value : 0.0;
 }
 
 double ActivationFunctions::Sigmoid(const double value) {
@@ -40,27 +53,36 @@ double ActivationFunctions::Sigmoid(const double value) {
 	return 1 / (1 + std::exp(-value));
 }
 
-double ActivationFunctions::Linear(const double value) {
+double ActivationFunctions::Linear(double value) {
 	return value;
 }
 
-std::string ActivationFunctions::getRepr() {
+
+std::string ActivationFunctions::getRepr() const {
 	switch (_function) {
-	case ActivationFunction::TanH: {
-		return "TanH";
-	}
+		case ActivationFunction::TanH: {
+			return "TanH";
+		}
 
-	case ActivationFunction::ReLU: {
-		return "ReLU";
-	}
+		case ActivationFunction::LeakyReLU: {
+			return "LeakyReLU";
+		}
 
-	case ActivationFunction::Sigmoid: {
-		return "Sigmoid";
-	}
+		case ActivationFunction::ReLU: {
+			return "ReLU";
+		}
 
-	case ActivationFunction::Linear: {
-		return "Linear";
-	}
+		case ActivationFunction::Sigmoid: {
+			return "Sigmoid";
+		}
+
+		case ActivationFunction::Linear: {
+				return "Linear";
+		}
+
+		default: {
+			throw std::runtime_error("Invalid function.");
+		}
 	}
 }
 

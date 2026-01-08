@@ -15,4 +15,5 @@ message Layer {
 message NeuralNetwork {
     required int32 numNodes = 1;
     repeated Layer layers = 2;
+    required bool is_softmax = 3;
 }

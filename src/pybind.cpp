@@ -24,6 +24,8 @@ PYBIND11_MODULE(NeuralNetworkPython, m) {
 		.def_readwrite("projectName", &PythonToCPP::projectName)
 
 		.def_readwrite("hiddenLayerSize", &PythonToCPP::hiddenLayerSize)
+		.def_readwrite("activationFunctions", &PythonToCPP::activationFunctions)
+
 		.def_readwrite("networksPerIter", &PythonToCPP::networksPerIter)
 		.def_readwrite("numSimulations", &PythonToCPP::numSimulations)
 		.def_readwrite("simTime", &PythonToCPP::simTime)
@@ -62,6 +64,9 @@ PYBIND11_MODULE(NeuralNetworkPython, m) {
 		.def(py::init<std::string>(), py::arg("Path"))
 		.def("compute", &NeuralNetwork::compute, py::arg("inputValues"),
 			"Compute output of network, based on input.")
+		.def("print", &NeuralNetwork::printNetwork)
+		.def("is_softmax", &NeuralNetwork::is_softmax)
+		.def("compute_softmax", &NeuralNetwork::softmax, py::arg("inputValues"), "Compute softmax from output of network.")
 	;
 
 	py::class_<PendulumInfo>(m, "PendulumInfo")

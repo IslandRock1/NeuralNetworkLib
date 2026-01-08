@@ -130,6 +130,7 @@ int main() {
 	PythonToCPP initSettings{
 		"MNIST",
 		{20, 20},
+		{2, 2, 5},
 		50,
 		1,
 		20,

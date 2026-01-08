@@ -31,6 +31,7 @@ NeuralNetwork::NeuralNetwork(const std::string& path) {
 		throw std::runtime_error("Could not parse file.");
 	}
 
+	_softmax = network.is_softmax();
 	_numNodes = network.numnodes();
 	_layers.clear();
 	_layers.reserve(network.layers_size());
@@ -56,6 +57,22 @@ NeuralNetwork::NeuralNetwork(const std::string& path) {
 	}
 }
 
+void NeuralNetwork::setActivationFunctions(std::vector<int> activationFunctions) {
+	for (int ix = 0; ix < activationFunctions.size(); ix++) {
+		if (ix >= _layers.size() - 1) {
+			break;
+		}
+
+		_layers[ix + 1].setActivationFunction(activationFunctions[ix]);
+
+		if ((ix == _layers.size() - 2) && (activationFunctions[ix] == 5)) {
+			_softmax = true;
+		} else if ((ix == _layers.size() - 2) && (activationFunctions[ix] != 5)) {
+			_softmax = false;
+		}
+	}
+}
+
 std::vector<double> NeuralNetwork::compute(std::vector<double> inputValues) {
 
 	for (int i = 1; i < _layers.size(); i++) {
@@ -63,6 +80,24 @@ std::vector<double> NeuralNetwork::compute(std::vector<double> inputValues) {
 	}
 
 	return inputValues;
+}
+
+std::vector<double> NeuralNetwork::softmax(std::vector<double> output) {
+	double maxLogit = *std::max_element(output.begin(), output.end());
+	double sum = 0.0;
+	std::vector<double> out;
+
+	for (int i = 0; i < 10; i++)
+		sum += std::exp(output[i] - maxLogit);
+
+	for (int i = 0; i < 10; i++)
+		out.emplace_back(std::exp(output[i] - maxLogit) / sum);
+
+	return out;
+}
+
+bool NeuralNetwork::is_softmax() const {
+	return _softmax;
 }
 
 void NeuralNetwork::executeRandomChange(const ModificationOptions& modificationOptions) {
@@ -91,9 +126,9 @@ void NeuralNetwork::executeRandomChange(const ModificationOptions& modificationO
 		}
 
 		double changeItem = uniform_dist_01(_e1);
-		if (changeItem < 0.07) {
+		if (changeItem < modificationOptions.chanceChangeBias) {
 			_layers[layerIx].nodes[nodePos].bias += uniform_dist_n11(_e1) * modificationOptions.temperature;
-		} else if (changeItem < 0.10) {
+		} else if (changeItem < (modificationOptions.chanceChangeBias + modificationOptions.chanceChangeFunction)) {
 			_layers[layerIx].nodes[nodePos].setFunction(uniform_dist_14(_e1));
 		} else {
 			std::uniform_int_distribution<int> weightPos(0, _layers[layerIx].nodes[nodePos].weights.size() - 1);
@@ -104,14 +139,16 @@ void NeuralNetwork::executeRandomChange(const ModificationOptions& modificationO
 
 void NeuralNetwork::printNetwork() {
 	std::cout << "Network stats: " << _layers.size() << " layers, " << _numNodes << " nodes.\n";
-	for (auto &l : _layers) {
-		l.printLayer();
+
+	for (int i = 1; i < _layers.size(); i++) {
+		_layers[i].printLayer();
 	}
 }
 
 void NeuralNetwork::save(const std::string& pathS) {
 	proto::NeuralNetwork network;
 	network.set_numnodes(_numNodes);
+	network.set_is_softmax(_softmax);
 
 	for (auto &l : _layers) {
 		auto* layer = network.add_layers();
@@ -167,6 +204,7 @@ NeuralNetwork NeuralNetwork::copy() const {
 		sizes.push_back(l.nodes.size());
 	}
 	NeuralNetwork newNetwork{sizes};
+	newNetwork._softmax = _softmax;
 
 	for (int i = 0; i < _layers.size(); i++) {
 		auto& newLayer = newNetwork._layers[i];

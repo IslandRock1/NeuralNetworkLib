@@ -9,6 +9,7 @@ struct PythonToCPP {
 	std::string projectName;
 
 	std::vector<int> hiddenLayerSize; // In and out is decided by sim
+	std::vector<int> activationFunctions;
 	int networksPerIter;
 	int numSimulations;
 	double simTime;

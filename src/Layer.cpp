@@ -10,22 +10,11 @@ Layer::Layer(int numNodes, int numInputs, bool zeroBias) {
 	}
 }
 
-// std::vector<double> Layer::computeLayer(const std::vector<double>& inputValues) {
-// 	std::vector<double> output;
-//
-// 	for (auto& node : nodes) {
-//
-// 		double tmp = 0.0;
-// 		auto nodeWeights = node.weights;
-// 		for (int j = 0; j < inputValues.size(); j++) {
-// 			tmp += inputValues[j] * nodeWeights[j];
-// 		}
-//
-// 		output.push_back(node.getActivationValue(tmp));
-// 	}
-//
-// 	return output;
-// }
+void Layer::setActivationFunction(const int functionIx) {
+	for (auto& node : nodes) {
+		node.setFunction(functionIx);
+	}
+}
 
 std::vector<double> Layer::computeLayer(const std::vector<double>& inputValues)
 {
@@ -50,7 +39,9 @@ std::vector<double> Layer::computeLayer(const std::vector<double>& inputValues)
 
 void Layer::printLayer() {
 	std::cout << "Layer stats: " << nodes.size() << " nodes.\n";
+	int i = 0;
 	for (auto &n : nodes) {
+		std::cout << "Node: " << i++ << "/" << nodes.size() << "\n";
 		n.printNode();
 	}
 }

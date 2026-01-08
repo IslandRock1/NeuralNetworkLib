@@ -9,6 +9,8 @@
 class Layer {
 public:
 	Layer(int numNodes, int numInputs, bool zeroBias);
+	void setActivationFunction(int functionIx);
+
 	std::vector<double> computeLayer(const std::vector<double>& inputValues);
 
 	void printLayer();

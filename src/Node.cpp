@@ -38,14 +38,18 @@ void Node::setFunction(int funcIx) {
 		break;
 
 	case 2:
-		function = ActivationFunction::ReLU;
+		function = ActivationFunction::LeakyReLU;
 		break;
 
 	case 3:
-		function = ActivationFunction::Sigmoid;
+		function = ActivationFunction::ReLU;
 		break;
 
 	case 4:
+		function = ActivationFunction::Sigmoid;
+		break;
+
+	case 5:
 		function = ActivationFunction::Linear;
 		break;
 
@@ -56,9 +60,10 @@ void Node::setFunction(int funcIx) {
 
 int Node::getFunction() {
 	if (function.getRepr() == "TanH") {return 1;}
-	if (function.getRepr() == "ReLU") {return 2;}
-	if (function.getRepr() == "Sigmoid") {return 3;}
-	if (function.getRepr() == "Linear") {return 4;}
+	if (function.getRepr() == "LeakyReLU") {return 2;}
+	if (function.getRepr() == "ReLU") {return 3;}
+	if (function.getRepr() == "Sigmoid") {return 4;}
+	if (function.getRepr() == "Linear") {return 5;}
 
 	return -1;
 }

@@ -4,6 +4,7 @@
 
 enum ActivationFunction {
 	TanH,
+	LeakyReLU,
 	ReLU,
 	Sigmoid,
 	Linear
@@ -12,12 +13,13 @@ enum ActivationFunction {
 class ActivationFunctions {
 public:
 	ActivationFunctions(ActivationFunction function);
-	double execute(double value);
-	std::string getRepr();
+	double execute(double value) const;
+	std::string getRepr() const;
 
 private:
 	ActivationFunction _function;
 	static double TanH(double value);
+	static double LeakyReLU(double value);
 	static double ReLU(double value);
 	static double Sigmoid(double value);
 	static double Linear(double value);
