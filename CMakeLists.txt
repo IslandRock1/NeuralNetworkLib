@@ -22,11 +22,9 @@ set(SHARED_SOURCES
         src/Layer.cpp
         src/NeuralNetwork.cpp
         src/TrainingLib.cpp
-        src/NeuralNetworkCuda.cu
 )
 
 add_library(NeuralNetworkLib STATIC ${SHARED_SOURCES})
-set_target_properties(NeuralNetworkLib PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_link_libraries(NeuralNetworkLib PUBLIC MNISTTestLib PendulumTestLib DoublePendulumTestLib neuralnetwork_msg Eigen3::Eigen)
 target_include_directories(NeuralNetworkLib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
@@ -43,9 +41,10 @@ if(pybind11_FOUND)
 endif()
 
 add_executable(Test Testing/test.cpp)
-set_target_properties(Test PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_link_libraries(Test NeuralNetworkLib)
 
+add_subdirectory(CudaDir)
+
 add_executable(TestCuda Testing/testCuda.cpp)
-set_target_properties(TestCuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_link_libraries(TestCuda NeuralNetworkLib)
+#set_target_properties(TestCuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_link_libraries(TestCuda NeuralNetworkCuda)
