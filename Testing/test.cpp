@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <random>
 #include <thread>
