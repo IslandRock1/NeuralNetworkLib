@@ -1,0 +1,5 @@
+
+add_library(NeuralNetworkCuda STATIC src/NeuralNetworkCuda.cu)
+set_target_properties(NeuralNetworkCuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_link_libraries(NeuralNetworkCuda PUBLIC NeuralNetworkLib)
+target_include_directories(NeuralNetworkCuda PUBLIC ${CMAKE_SOURCE_DIR}/CudaDir/include)
