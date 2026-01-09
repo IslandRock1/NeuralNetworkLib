@@ -6,6 +6,8 @@
 #include <thread>
 #include <vector>
 #include <atomic>
+#include <iostream>
+#include <functional>
 
 #include "BaseTester.hpp"
 
