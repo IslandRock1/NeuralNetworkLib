@@ -4,8 +4,6 @@
 
 #include <vector>
 
-#include "NeuralNetwork.pb.h"
-
 #include "ModificationOptions.hpp"
 #include "Layer.hpp"
 
@@ -24,6 +22,8 @@ public:
 	void printNetwork();
 	void save(const std::string& pathS);
 	[[nodiscard]] NeuralNetwork copy() const;
+
+	std::vector<Layer> getLayers();
 
 private:
 	std::vector<Layer> _layers;

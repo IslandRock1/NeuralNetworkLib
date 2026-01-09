@@ -4,6 +4,7 @@
 #include <random>
 #include <string>
 
+#include "NeuralNetwork.pb.h"
 #include "NeuralNetwork.hpp"
 
 NeuralNetwork::NeuralNetwork(): _numNodes(0) {}
@@ -226,3 +227,6 @@ NeuralNetwork NeuralNetwork::copy() const {
 	return newNetwork;
 }
 
+std::vector<Layer> NeuralNetwork::getLayers() {
+	return _layers;
+}
