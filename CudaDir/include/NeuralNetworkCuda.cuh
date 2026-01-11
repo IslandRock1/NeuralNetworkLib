@@ -9,7 +9,7 @@ public:
 	NeuralNetworkCuda(NeuralNetwork& network);
 	~NeuralNetworkCuda();
 
-	void compute(const std::vector<float>& inputValues);
+	std::vector<float> compute(const std::vector<float>& inputValues);
 private:
 	NeuralNetwork& network;
 
@@ -18,9 +18,17 @@ private:
 	float* biasValues;
 	float* weightValues;
 
-	void ExecuteMult(const std::vector<float>& inputValues);
-	void ExecuteSum();
-	void ExecuteActivation();
+	int sizeValues = 0;
+	int sizeMultValues = 0;
+	int sizeBiasValues;
+	int sizeWeightValues;
+
+	int offsetBias = 0;
+	int offsetWeights = 0;
+
+	void ExecuteMult(int layerIx);
+	void ExecuteSum(int layerIx);
+	void ExecuteActivation(int functionIx, int layerIx);
 };
 
 
