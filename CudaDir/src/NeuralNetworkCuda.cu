@@ -33,8 +33,12 @@ NeuralNetworkCuda::NeuralNetworkCuda(NeuralNetwork& network)
 	cudaMemcpy(weightValues, weights.data(), weights.size() * sizeof(float), cudaMemcpyHostToDevice);
 	cudaMemcpy(biasValues, bias.data(), bias.size() * sizeof(float), cudaMemcpyHostToDevice);
 
-	sizeBiasValues = bias.size();
-	sizeWeightValues = weights.size();
+	std::cout << "Reserving data..\n";
+	std::cout << "Values: " << numNodes << "\n";
+	std::cout << "MultValues: " << weights.size() << "\n";
+	std::cout << "WeightValues: " << weights.size() << "\n";
+	std::cout << "BiasValues: " << bias.size() << "\n";
+	std::cout << " ----------------------- \n";
 }
 
 NeuralNetworkCuda::~NeuralNetworkCuda() {
@@ -104,17 +108,20 @@ std::vector<float> NeuralNetworkCuda::compute(const std::vector<float>& inputVal
 }
 
 void NeuralNetworkCuda::ExecuteMult(int layerIx) {
-	int numValues = sizeValues;
 	int blockSize = 256;
-	int numBlocks = getNumBlock(numValues);
+	int numBlocks = getNumBlock(sizeValues);
 
 	auto layers = network.getLayers();
 
 	for (int i = 0; i < layers[layerIx].nodes.size(); i++) {
-		mult<<<numBlocks, blockSize>>>(values, weightValues, multValues, numValues, 0, offsetWeights + i * numValues, i * numValues);
+		mult<<<numBlocks, blockSize>>>(values, weightValues, multValues, sizeValues, 0, offsetWeights + i * sizeValues, i * sizeValues);
 	}
-	sizeMultValues = numValues * layers[layerIx].nodes.size();
+	sizeMultValues = sizeValues * layers[layerIx].nodes.size();
 	offsetWeights += layers[layerIx].nodes.size() * sizeValues;
+
+	std::cout << "Values: " << sizeValues << "\n";
+	std::cout << "WeightValues: " << offsetWeights + (layers[layerIx].nodes.size()) * sizeValues + sizeValues << "\n";
+	std::cout << "Mult values: " << (layers[layerIx].nodes.size()) * sizeValues + sizeValues << "\n";
 }
 
 void NeuralNetworkCuda::ExecuteSum(int layerIx) {

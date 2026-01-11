@@ -23,8 +23,6 @@ private:
 
 	int sizeValues = 0;
 	int sizeMultValues = 0;
-	int sizeBiasValues;
-	int sizeWeightValues;
 
 	int offsetBias = 0;
 	int offsetWeights = 0;

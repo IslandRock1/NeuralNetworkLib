@@ -64,6 +64,6 @@ void timeAndTestSize(std::vector<int> &layerSize) {
 }
 
 int main() {
-	std::vector<int> layerSizes = {5, 2000, 10000, 5000, 200, 5};
+	std::vector<int> layerSizes = {5, 200, 100, 50, 20, 5};
 	timeAndTestSize(layerSizes);
 }
