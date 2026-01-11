@@ -3,6 +3,7 @@
 #define NEURALNETWORKLIB_NEURALNETWORK_HPP
 
 #include <vector>
+#include <string>
 
 #include "ModificationOptions.hpp"
 #include "Layer.hpp"
