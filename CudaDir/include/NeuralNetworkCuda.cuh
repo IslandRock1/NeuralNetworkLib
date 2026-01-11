@@ -9,9 +9,12 @@ public:
 	NeuralNetworkCuda(NeuralNetwork& network);
 	~NeuralNetworkCuda();
 
+	void setActivationFunctions(const std::vector<int>& functions);
+
 	std::vector<float> compute(const std::vector<float>& inputValues);
 private:
 	NeuralNetwork& network;
+	std::vector<int> activationFunctions;
 
 	float* values;
 	float* multValues;

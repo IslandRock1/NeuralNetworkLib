@@ -10,9 +10,9 @@ NeuralNetworkCuda::NeuralNetworkCuda(NeuralNetwork& network)
 
 	std::vector<float> weights;
 	std::vector<float> bias;
-	int numNodes = 0;
 
 	auto layers = network.getLayers();
+	int numNodes = layers[0].nodes.size();
 	for (int layerIx = 1; layerIx < layers.size(); layerIx++) {
 		for (auto& n : layers[layerIx].nodes) {
 			bias.emplace_back(n.bias);
@@ -23,18 +23,6 @@ NeuralNetworkCuda::NeuralNetworkCuda(NeuralNetwork& network)
 			}
 		}
 	}
-
-	// std::cout << "Weights: ";
-	// for (auto v : weights) {
-	// 	std::cout << v << " ";
-	// }
-	// std::cout << "\n";
-	//
-	// std::cout << "Bias: ";
-	// for (auto v : bias) {
-	// 	std::cout << v << " ";
-	// }
-	// std::cout << "\n";
 
 	// TODO: Size of values can be smaller, as its reused
 	cudaMalloc(&values, numNodes * sizeof(float));
@@ -55,6 +43,11 @@ NeuralNetworkCuda::~NeuralNetworkCuda() {
 	cudaFree(weightValues);
 	cudaFree(biasValues);
 }
+
+void NeuralNetworkCuda::setActivationFunctions(const std::vector<int>& functions) {
+	activationFunctions = functions;
+}
+
 
 __global__ void mult(
 	const float* input0,
@@ -93,29 +86,19 @@ int getNumBlock(int numValues) {
 }
 
 std::vector<float> NeuralNetworkCuda::compute(const std::vector<float>& inputValues) {
+	sizeValues = inputValues.size();
+	cudaMemcpy(values, inputValues.data(), sizeValues * sizeof(float), cudaMemcpyHostToDevice);
 
 	auto layers = network.getLayers();
+	for (int i = 1; i < layers.size(); i++) {
+		ExecuteMult(i);
+		ExecuteSum(i);
+		ExecuteActivation(activationFunctions[i - 1], i);
+	}
 
-	sizeValues = inputValues.size();
-	cudaMemcpy(values, inputValues.data(), inputValues.size() * sizeof(float), cudaMemcpyHostToDevice);
-
-	ExecuteMult(1);
-	ExecuteSum(1);
-	ExecuteActivation(2, 1);
 	cudaDeviceSynchronize();
 
-	offsetWeights += layers[1].nodes.size() * inputValues.size();
-	offsetBias += layers[1].nodes.size();
-
-	// std::cout << "Offset weights: " << offsetWeights << " | Offset bias: " << offsetBias << "\n";
-
-	ExecuteMult(2);
-	ExecuteSum(2);
-	ExecuteActivation(5, 2);
-	cudaDeviceSynchronize();
-
-
-	std::vector<float> out(layers[2].nodes.size());
+	std::vector<float> out(sizeValues);
 	cudaMemcpy(out.data(), values, sizeValues * sizeof(float), cudaMemcpyDeviceToHost);
 	return out;
 }
@@ -131,18 +114,7 @@ void NeuralNetworkCuda::ExecuteMult(int layerIx) {
 		mult<<<numBlocks, blockSize>>>(values, weightValues, multValues, numValues, 0, offsetWeights + i * numValues, i * numValues);
 	}
 	sizeMultValues = numValues * layers[layerIx].nodes.size();
-
-	// cudaDeviceSynchronize();
-	//
-	// int num = layers[layerIx].nodes.size() * numValues;
-	// std::vector<float> out(num);
-	// cudaMemcpy(out.data(), multValues, num * sizeof(float), cudaMemcpyDeviceToHost);
-	//
-	// std::cout << "Mult values: ";
-	// for (auto v : out) {
-	// 	std::cout << v << " ";
-	// }
-	// std::cout << "\n";
+	offsetWeights += layers[layerIx].nodes.size() * sizeValues;
 }
 
 void NeuralNetworkCuda::ExecuteSum(int layerIx) {
@@ -153,23 +125,12 @@ void NeuralNetworkCuda::ExecuteSum(int layerIx) {
 		sumArray<<<1, 1>>>(multValues, biasValues, values, layers[layerIx - 1].nodes.size(), i * layers[layerIx - 1].nodes.size(), offsetBias + i, i);
 	}
 	sizeValues = numValues;
-
-	// cudaDeviceSynchronize();
-	//
-	// int num = numValues;
-	// std::vector<float> out(num);
-	// cudaMemcpy(out.data(), values, num * sizeof(float), cudaMemcpyDeviceToHost);
-	//
-	// std::cout << "Sum values: ";
-	// for (auto v : out) {
-	// 	std::cout << v << " ";
-	// }
-	// std::cout << "\n";
+	offsetBias += layers[layerIx].nodes.size();
 }
 
 void NeuralNetworkCuda::ExecuteActivation(int functionIx, int layerIx) {
 	auto layers = network.getLayers();
-	int numValues = layers[layerIx].nodes.size();
+	int numValues = sizeValues;
 	int blockSize = 256;
 	int numBlocks = getNumBlock(numValues);
 
@@ -178,17 +139,5 @@ void NeuralNetworkCuda::ExecuteActivation(int functionIx, int layerIx) {
 	} else if (functionIx == 5) {
 		// Do nothing (linear)
 	}
-
-	// cudaDeviceSynchronize();
-	//
-	// int num = numValues;
-	// std::vector<float> out(num);
-	// cudaMemcpy(out.data(), values, num * sizeof(float), cudaMemcpyDeviceToHost);
-	//
-	// std::cout << "Activation values: ";
-	// for (auto v : out) {
-	// 	std::cout << v << " ";
-	// }
-	// std::cout << "\n";
 
 }
