@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(Projects/Pendulum)
 add_subdirectory(Projects/DoublePendulum)
 add_subdirectory(Projects/MNIST_Digits)
+
 add_subdirectory(Protobuf)
 
 include(FetchContent)
