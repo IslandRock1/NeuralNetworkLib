@@ -24,6 +24,7 @@ set(SHARED_SOURCES
         src/TrainingLib.cpp
 )
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(NeuralNetworkLib STATIC ${SHARED_SOURCES})
 target_link_libraries(NeuralNetworkLib PUBLIC MNISTTestLib PendulumTestLib DoublePendulumTestLib neuralnetwork_msg Eigen3::Eigen)
 target_include_directories(NeuralNetworkLib PUBLIC ${CMAKE_SOURCE_DIR}/include)
